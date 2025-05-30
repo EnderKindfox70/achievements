@@ -14,6 +14,17 @@ export async function fetchSteamAchievements(gameId) {
   }
 }
 
+export async function fetchSteamGameDetails(gameId) {
+  try {
+    const response = await fetch(`http://localhost:3001/api/steam/games/${gameId}`);
+    const data = await response.json();
+    return data.response.game || {};
+  } catch (error) {
+    console.error('Error fetching Steam game details:', error);
+    throw error;
+  }
+}
+
 export async function fetchOwnedGames() {
   try {
     const response = await fetch(`http://localhost:3001/api/steam/games`);
@@ -23,4 +34,9 @@ export async function fetchOwnedGames() {
     console.error('Error fetching Steam games:', error);
     throw error;
   }
+}
+
+export function getSteamGameIconUrl(gameId, iconHash) {
+  if (!iconHash) return null;
+  return `http://media.steampowered.com/steamcommunity/public/images/apps/${gameId}/${iconHash}.jpg`;
 }
