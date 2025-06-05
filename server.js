@@ -68,6 +68,30 @@ app.get('/api/gog/games/:gameId', async (req, res) => {
   }
 });
 
+app.get('/api/steam/achievements/:gameId', async (req, res) => {
+  try {
+    const { gameId } = req.params;
+    const response = await axios.get(
+      `http://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/`, {
+        params: {
+          key: STEAM_API_KEY,
+          steamid: STEAM_ID,
+          appid: gameId,
+          format: 'json' 
+        }
+      }
+    );
+    res.json(response.data);
+  } catch (error) {
+    if (error.response?.status === 400) {
+      res.json({ playerstats: { achievements: [] } });
+    } else {
+      console.error('Steam API Error:', error.response?.data || error.message);
+      res.status(500).json({ error: 'Failed to fetch achievements' });
+    }
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`Proxy server running on port ${PORT}`);
 });

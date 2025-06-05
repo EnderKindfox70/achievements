@@ -7,19 +7,22 @@ export async function fetchSteamAchievements(gameId) {
   try {
     const response = await fetch(`http://localhost:3001/api/steam/achievements/${gameId}`);
     const data = await response.json();
-    return data.game.availableGameStats.achievements || [];
+    return data.playerstats?.achievements || [];
   } catch (error) {
     console.error('Error fetching Steam achievements:', error);
-    throw error;
+    return [];  // Return empty array instead of throwing
   }
 }
 
 export async function fetchSteamGameDetails(gameId) {
-  try {
+  try 
+  {
     const response = await fetch(`http://localhost:3001/api/steam/games/${gameId}`);
     const data = await response.json();
     return data.response.game || {};
-  } catch (error) {
+  } 
+  catch (error)
+  {
     console.error('Error fetching Steam game details:', error);
     throw error;
   }

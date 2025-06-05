@@ -42,20 +42,43 @@ function App() {
   useEffect(() => {
     const loadGames = async () => {
       try {
-        setLoading(true)
-        const ownedGames = await fetchOwnedGames()
-        const ownedGOGGames = await fetchOwnedGOGGames()
-        // Combine both arrays of games
-        setGames([...ownedGames, ...ownedGOGGames])
-      } catch (err) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
+        setLoading(true);
+        const ownedGames = await fetchOwnedGames();
+        
+        // Fetch achievements for each game
+        const gamesWithAchievements = await Promise.all(
+          ownedGames.map(async (game) => {
+            const achievements = await fetchSteamAchievements(game.appid);
+            console.log(achievements);
+            return {
+              ...game,
+              achievements
+            };
+          })
+        );
 
-    loadGames()
+        const ownedGOGGames = await fetchOwnedGOGGames();
+        console.log('Games with achievements:', gamesWithAchievements);
+
+        setGames([...gamesWithAchievements, ...ownedGOGGames]);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGames();
   }, [])
+
+  const getAchievementStats = (game) => {
+    if (!game.achievements || game.achievements.length === 0) return { completed: 0, total: 0 };
+    const completed = game.achievements.filter(ach => ach.achieved).length;
+    return {
+      completed,
+      total: game.achievements.length
+    };
+  };
 
   return (
     <div className="container">
@@ -86,6 +109,17 @@ function App() {
                 />
                 <h3>{game.name}</h3>
                 <FiChevronDown className="chevron-icon"/>
+            </div>
+            <div className='game-stats'>
+              <div className='game-completion-bar'>
+                <div 
+                  className='game-completion-bar-inner' 
+                  style={{ width: `${(getAchievementStats(game).completed / getAchievementStats(game).total) * 100 || 0}%` }}
+                ></div>
+              </div>
+              <p className='achievement-count'>
+                {getAchievementStats(game).completed} / {getAchievementStats(game).total} succès
+              </p>
             </div>
             <p>Temps de jeu: {Math.round(game.playtime_forever / 60)} heures</p>
           </div>
